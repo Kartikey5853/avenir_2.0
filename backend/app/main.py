@@ -4,11 +4,20 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 import logging
 
+#models
+from app.database import Base, engine
+from app.models.user import User
+from app.models.otp import OTP
+from app.models.profile import UserProfile
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+
 # Routers
 from app.routers import users  # we will create this next
 
+
+Base.metadata.create_all(bind=engine)
 # ----------------------------------
-# Logging Configuration (Production Ready)
+# Logging Configuration 
 # ----------------------------------
 logging.basicConfig(
     level=logging.INFO,
@@ -29,27 +38,25 @@ app = FastAPI(
 # Global Exception Handlers
 # ----------------------------------
 
-@app.exception_handler(StarletteHTTPException)
-async def http_exception_handler(request: Request, exc: StarletteHTTPException):
-    logging.warning(f"HTTP error: {exc.detail}")
+@app.exception_handler(IntegrityError)
+async def integrity_exception_handler(request: Request, exc: IntegrityError):
+    logging.warning(f"Database integrity error: {str(exc)}")
     return JSONResponse(
-        status_code=exc.status_code,
+        status_code=400,
         content={
             "success": False,
-            "error": exc.detail
+            "error": "Database integrity error"
         }
     )
 
-
-@app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    logging.warning(f"Validation error: {exc.errors()}")
+@app.exception_handler(SQLAlchemyError)
+async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):
+    logging.error(f"Database error: {str(exc)}")
     return JSONResponse(
-        status_code=422,
+        status_code=500,
         content={
             "success": False,
-            "error": "Invalid request data",
-            "details": exc.errors()
+            "error": "Database operation failed"
         }
     )
 
@@ -69,7 +76,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 # Include Routers
 # ----------------------------------
 
-#app.include_router(users.router, prefix="/api/users", tags=["Users"])
+app.include_router(users.router, prefix="/api/users", tags=["Users"])
 
 # ----------------------------------
 # Health Check Route (Production Must)
