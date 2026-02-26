@@ -15,6 +15,13 @@ class OTP(Base):
     # values: "email_verification", "login_2fa", "password_reset"
 
     expires_at = Column(DateTime, nullable=False)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    attempts = Column(Integer, default=0)
+    max_attempts = Column(Integer, default=5)
+    locked_until = Column(DateTime, nullable=True)
+
+    
 
     user = relationship("User", back_populates="otps")
+    

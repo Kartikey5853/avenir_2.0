@@ -4,7 +4,9 @@ import logging
 import os
 
 
+
 def send_otp_email(to_email: str, otp_code: str):
+
 
     smtp_server = os.getenv("SMTP_SERVER")
     smtp_port = int(os.getenv("SMTP_PORT", 587))
@@ -24,6 +26,7 @@ def send_otp_email(to_email: str, otp_code: str):
             server.starttls()
             server.login(smtp_user, smtp_password)
             server.sendmail(smtp_user, to_email, message.as_string())
+            
 
         logging.info(f"OTP email sent to {to_email}")
 

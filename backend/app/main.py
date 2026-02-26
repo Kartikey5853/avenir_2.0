@@ -1,3 +1,7 @@
+
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
@@ -12,7 +16,8 @@ from app.models.profile import UserProfile
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 # Routers
-from app.routers import users  # we will create this next
+from app.routers import users  
+from app.routers import login  
 
 
 Base.metadata.create_all(bind=engine)
@@ -77,7 +82,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 # ----------------------------------
 
 app.include_router(users.router, prefix="/api/users", tags=["Users"])
-
+app.include_router(login.router, prefix="/api/users", tags=["Login"])
 # ----------------------------------
 # Health Check Route (Production Must)
 # ----------------------------------
